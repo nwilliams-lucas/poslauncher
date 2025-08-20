@@ -8,7 +8,10 @@
       "Bash(cp:*)",
       "Bash(dotnet publish:*)",
       "Bash(zip:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(source:*)"
     ],
     "deny": [],
     "ask": []
