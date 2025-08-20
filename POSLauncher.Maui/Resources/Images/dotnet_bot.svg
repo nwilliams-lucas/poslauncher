@@ -1,0 +1,20 @@
+<svg width="419" height="519" viewBox="0 0 419 519" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+  <g fill="none" fill-rule="evenodd">
+    <rect width="419" height="519" fill="#1976D2"/>
+    <g transform="translate(110, 130)">
+      <!-- Bot head -->
+      <circle cx="100" cy="80" r="70" fill="#FFFFFF"/>
+      <!-- Bot eyes -->
+      <circle cx="80" cy="70" r="8" fill="#1976D2"/>
+      <circle cx="120" cy="70" r="8" fill="#1976D2"/>
+      <!-- Bot body -->
+      <rect x="60" y="130" width="80" height="120" rx="20" fill="#FFFFFF"/>
+      <!-- Bot arms -->
+      <rect x="20" y="150" width="40" height="20" rx="10" fill="#FFFFFF"/>
+      <rect x="140" y="150" width="40" height="20" rx="10" fill="#FFFFFF"/>
+      <!-- Bot legs -->
+      <rect x="80" y="240" width="15" height="40" rx="7" fill="#FFFFFF"/>
+      <rect x="105" y="240" width="15" height="40" rx="7" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

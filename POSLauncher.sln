@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSLauncher", "POSLauncher\POSLauncher.csproj", "{B8F5E5C4-5B5E-4B5E-9B5E-5B5E5B5E5B5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSLauncher.Maui", "POSLauncher.Maui\POSLauncher.Maui.csproj", "{C9F6E6D4-6C6E-4D6E-AD6E-6C6E6C6E6C6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSLauncher.Portable", "POSLauncher.Portable\POSLauncher.Portable.csproj", "{D9F7E7E4-7D7E-4E7E-BE7E-7D7E7D7E7D7E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B8F5E5C4-5B5E-4B5E-9B5E-5B5E5B5E5B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F5E5C4-5B5E-4B5E-9B5E-5B5E5B5E5B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F5E5C4-5B5E-4B5E-9B5E-5B5E5B5E5B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F5E5C4-5B5E-4B5E-9B5E-5B5E5B5E5B5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9F6E6D4-6C6E-4D6E-AD6E-6C6E6C6E6C6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9F6E6D4-6C6E-4D6E-AD6E-6C6E6C6E6C6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9F6E6D4-6C6E-4D6E-AD6E-6C6E6C6E6C6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9F6E6D4-6C6E-4D6E-AD6E-6C6E6C6E6C6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9F7E7E4-7D7E-4E7E-BE7E-7D7E7D7E7D7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9F7E7E4-7D7E-4E7E-BE7E-7D7E7D7E7D7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9F7E7E4-7D7E-4E7E-BE7E-7D7E7D7E7D7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9F7E7E4-7D7E-4E7E-BE7E-7D7E7D7E7D7E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

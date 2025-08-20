@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="456" height="456" viewBox="0 0 456 456" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <rect x="0" y="0" width="456" height="456" fill="#512BD4" rx="40" ry="40"/>
+    
+    <!-- Gear shape -->
+    <g transform="translate(228, 228)">
+        <!-- Outer gear teeth -->
+        <rect x="-8" y="-120" width="16" height="40" fill="white"/>
+        <rect x="-8" y="80" width="16" height="40" fill="white"/>
+        <rect x="-120" y="-8" width="40" height="16" fill="white"/>
+        <rect x="80" y="-8" width="40" height="16" fill="white"/>
+        
+        <rect x="-85" y="-85" width="28" height="28" fill="white" transform="rotate(45)"/>
+        <rect x="57" y="-85" width="28" height="28" fill="white" transform="rotate(45)"/>
+        <rect x="-85" y="57" width="28" height="28" fill="white" transform="rotate(45)"/>
+        <rect x="57" y="57" width="28" height="28" fill="white" transform="rotate(45)"/>
+        
+        <!-- Outer ring -->
+        <circle r="80" fill="none" stroke="white" stroke-width="12"/>
+        
+        <!-- Inner ring -->
+        <circle r="50" fill="none" stroke="white" stroke-width="8"/>
+        
+        <!-- Center circle -->
+        <circle r="25" fill="white"/>
+        
+        <!-- Center hole -->
+        <circle r="12" fill="#512BD4"/>
+    </g>
+    
+    <!-- Text elements -->
+    <text x="228" y="380" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="32" font-weight="bold">POS</text>
+    <text x="228" y="415" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18">LAUNCHER</text>
+</svg>

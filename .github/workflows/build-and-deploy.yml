@@ -1,0 +1,227 @@
+name: Build and Deploy POS Launcher
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore POSLauncher.sln
+
+    - name: Build solution
+      run: dotnet build POSLauncher.sln --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test POSLauncher.sln --configuration Release --no-build --verbosity normal
+
+    - name: Publish application
+      run: |
+        dotnet publish POSLauncher/POSLauncher.csproj --configuration Release --output ./publish --no-build --self-contained true --runtime win-x64
+
+    - name: Create version info
+      id: version
+      shell: pwsh
+      run: |
+        if ($env:GITHUB_REF -match '^refs/tags/v(.*)$') {
+          $version = $matches[1]
+        } else {
+          $version = "1.0.0.$env:GITHUB_RUN_NUMBER"
+        }
+        echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Install WiX Toolset
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe" -OutFile "wix311.exe"
+        Start-Process -FilePath "wix311.exe" -ArgumentList "/S" -Wait
+
+    - name: Create MSI installer
+      shell: pwsh
+      run: |
+        $env:Path += ";C:\Program Files (x86)\WiX Toolset v3.11\bin"
+        
+        # Create WiX source file
+        $wxs = @"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+          <Product Id="*" Name="POS Launcher" Language="1033" Version="$env:VERSION" 
+                   Manufacturer="Your Company" UpgradeCode="12345678-1234-1234-1234-123456789012">
+            <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+            
+            <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+            <MediaTemplate EmbedCab="yes" />
+            
+            <Feature Id="ProductFeature" Title="POS Launcher" Level="1">
+              <ComponentGroupRef Id="ProductComponents" />
+            </Feature>
+            
+            <Directory Id="TARGETDIR" Name="SourceDir">
+              <Directory Id="ProgramFilesFolder">
+                <Directory Id="INSTALLFOLDER" Name="POS Launcher" />
+              </Directory>
+              <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="POS Launcher"/>
+              </Directory>
+            </Directory>
+            
+            <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+              <Component Id="MainExecutable">
+                <File Id="POSLauncherEXE" Source="publish\POSLauncher.exe" KeyPath="yes">
+                  <Shortcut Id="ApplicationStartMenuShortcut" Directory="ApplicationProgramsFolder" 
+                           Name="POS Launcher" WorkingDirectory="INSTALLFOLDER" Icon="POSLauncher.exe" 
+                           IconIndex="0" Advertise="yes" />
+                </File>
+              </Component>
+            </ComponentGroup>
+          </Product>
+        </Wix>
+        "@
+        
+        $wxs | Out-File -FilePath "POSLauncher.wxs" -Encoding UTF8
+        
+        candle.exe -out POSLauncher.wixobj POSLauncher.wxs
+        light.exe -out "POSLauncher-$env:VERSION.msi" POSLauncher.wixobj
+
+    - name: Upload MSI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: POSLauncher-MSI
+        path: "POSLauncher-*.msi"
+
+    - name: Upload published files
+      uses: actions/upload-artifact@v4
+      with:
+        name: POSLauncher-Published
+        path: publish/
+
+  deploy-intune:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download MSI artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: POSLauncher-MSI
+
+    - name: Install Microsoft Graph PowerShell
+      shell: pwsh
+      run: |
+        Install-Module Microsoft.Graph -Force -AllowClobber
+
+    - name: Upload to Intune
+      shell: pwsh
+      env:
+        TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      run: |
+        # Connect to Microsoft Graph
+        $securePassword = ConvertTo-SecureString $env:CLIENT_SECRET -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential($env:CLIENT_ID, $securePassword)
+        
+        Connect-MgGraph -TenantId $env:TENANT_ID -ClientSecretCredential $credential
+        
+        # Find the MSI file
+        $msiFile = Get-ChildItem -Name "POSLauncher-*.msi" | Select-Object -First 1
+        
+        if ($msiFile) {
+          Write-Host "Found MSI file: $msiFile"
+          
+          # Create Intune application package
+          $appData = @{
+            "@odata.type" = "#microsoft.graph.win32LobApp"
+            displayName = "POS Launcher"
+            description = "Service launcher for PostgreSQL, JMC FIXED, and Commerce_Client"
+            publisher = "Your Company"
+            largeIcon = @{
+              type = "image/png"
+              value = ""  # Base64 encoded icon
+            }
+            isFeatured = $false
+            privacyInformationUrl = ""
+            informationUrl = ""
+            owner = ""
+            developer = ""
+            notes = "Automatically starts required services and applications for POS system"
+            publishingState = "notPublished"
+            installCommandLine = "msiexec /i `"$msiFile`" /quiet"
+            uninstallCommandLine = "msiexec /x `"$msiFile`" /quiet"
+          }
+          
+          Write-Host "MSI file ready for Intune deployment: $msiFile"
+          Write-Host "Manual deployment required - add MSI to Intune console"
+        } else {
+          Write-Error "No MSI file found"
+          exit 1
+        }
+
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download MSI artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: POSLauncher-MSI
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## POS Launcher Release
+          
+          ### Features
+          - Automatic PostgreSQL service startup
+          - JMC FIXED service management  
+          - Commerce_Client application launcher
+          - Visual progress feedback
+          - Machine-specific configuration
+          - Startup registration for all user profiles
+          
+          ### Installation
+          1. Download the MSI installer
+          2. Run as administrator
+          3. Configure paths if needed via the Configuration button
+          
+          ### Intune Deployment
+          Upload the MSI file to Microsoft Intune for enterprise deployment.
+        draft: false
+        prerelease: false
+
+    - name: Upload MSI to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./POSLauncher-*.msi
+        asset_name: POSLauncher-Installer.msi
+        asset_content_type: application/x-msi

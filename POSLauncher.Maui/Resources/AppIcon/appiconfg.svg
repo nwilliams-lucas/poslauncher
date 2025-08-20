@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="456" height="456" viewBox="0 0 456 456" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <!-- Foreground gear shape -->
+    <g transform="translate(228, 228)" fill="white">
+        <!-- Outer gear teeth -->
+        <rect x="-8" y="-120" width="16" height="40"/>
+        <rect x="-8" y="80" width="16" height="40"/>
+        <rect x="-120" y="-8" width="40" height="16"/>
+        <rect x="80" y="-8" width="40" height="16"/>
+        
+        <rect x="-85" y="-85" width="28" height="28" transform="rotate(45)"/>
+        <rect x="57" y="-85" width="28" height="28" transform="rotate(45)"/>
+        <rect x="-85" y="57" width="28" height="28" transform="rotate(45)"/>
+        <rect x="57" y="57" width="28" height="28" transform="rotate(45)"/>
+        
+        <!-- Rings -->
+        <circle r="80" fill="none" stroke="white" stroke-width="12"/>
+        <circle r="50" fill="none" stroke="white" stroke-width="8"/>
+        <circle r="25"/>
+    </g>
+</svg>
