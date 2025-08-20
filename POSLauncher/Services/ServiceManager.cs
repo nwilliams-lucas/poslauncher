@@ -7,34 +7,34 @@ namespace POSLauncher.Services
 {
     public class ServiceManager
     {
-        public async Task<ServiceStatus> CheckServiceStatus(string serviceName)
+        public Task<ServiceStatus> CheckServiceStatus(string serviceName)
         {
             try
             {
                 using (var service = new ServiceController(serviceName))
                 {
                     service.Refresh();
-                    return new ServiceStatus
+                    return Task.FromResult(new ServiceStatus
                     {
                         Name = serviceName,
                         Status = service.Status,
                         IsRunning = service.Status == ServiceControllerStatus.Running
-                    };
+                    });
                 }
             }
             catch (Exception ex)
             {
-                return new ServiceStatus
+                return Task.FromResult(new ServiceStatus
                 {
                     Name = serviceName,
                     Status = ServiceControllerStatus.Stopped,
                     IsRunning = false,
                     ErrorMessage = ex.Message
-                };
+                });
             }
         }
 
-        public async Task<bool> StartService(string serviceName)
+        public Task<bool> StartService(string serviceName)
         {
             try
             {
@@ -43,22 +43,22 @@ namespace POSLauncher.Services
                     service.Refresh();
                     
                     if (service.Status == ServiceControllerStatus.Running)
-                        return true;
+                        return Task.FromResult(true);
 
                     if (service.Status == ServiceControllerStatus.Stopped)
                     {
                         service.Start();
                         service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
-                        return service.Status == ServiceControllerStatus.Running;
+                        return Task.FromResult(service.Status == ServiceControllerStatus.Running);
                     }
                     
-                    return false;
+                    return Task.FromResult(false);
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Failed to start service {serviceName}: {ex.Message}");
-                return false;
+                return Task.FromResult(false);
             }
         }
 

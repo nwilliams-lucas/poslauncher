@@ -17,22 +17,16 @@
         <Style x:Key="SuccessStyle" TargetType="TextBlock" BasedOn="{StaticResource StatusTextStyle}">
             <Setter Property="Background" Value="#E8F5E8"/>
             <Setter Property="Foreground" Value="#2E7D32"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
-            <Setter Property="BorderThickness" Value="1"/>
         </Style>
         
         <Style x:Key="ErrorStyle" TargetType="TextBlock" BasedOn="{StaticResource StatusTextStyle}">
             <Setter Property="Background" Value="#FFEBEE"/>
             <Setter Property="Foreground" Value="#C62828"/>
-            <Setter Property="BorderBrush" Value="#F44336"/>
-            <Setter Property="BorderThickness" Value="1"/>
         </Style>
         
         <Style x:Key="InProgressStyle" TargetType="TextBlock" BasedOn="{StaticResource StatusTextStyle}">
             <Setter Property="Background" Value="#FFF3E0"/>
             <Setter Property="Foreground" Value="#E65100"/>
-            <Setter Property="BorderBrush" Value="#FF9800"/>
-            <Setter Property="BorderThickness" Value="1"/>
         </Style>
     </Application.Resources>
 </Application>

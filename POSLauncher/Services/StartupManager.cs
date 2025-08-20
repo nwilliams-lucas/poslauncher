@@ -29,11 +29,7 @@ namespace POSLauncher.Services
         {
             try
             {
-                var executablePath = Assembly.GetExecutingAssembly().Location;
-                if (executablePath.EndsWith(".dll"))
-                {
-                    executablePath = executablePath.Replace(".dll", ".exe");
-                }
+                var executablePath = Path.Combine(AppContext.BaseDirectory, "POSLauncher.exe");
 
                 using (var key = Registry.LocalMachine.OpenSubKey(StartupKeyPath, true))
                 {

@@ -59,7 +59,7 @@ namespace POSLauncher
             }
         }
 
-        private async Task CheckAndConfigureStartup()
+        private Task CheckAndConfigureStartup()
         {
             UpdateStatus("Configuring startup registration...");
             
@@ -83,6 +83,7 @@ namespace POSLauncher
             {
                 UpdateStatusBlock(StartupStatus, $"Startup Registration: Error - {ex.Message}", false);
             }
+            return Task.CompletedTask;
         }
 
         private async Task CheckAndStartPostgreSQL()
