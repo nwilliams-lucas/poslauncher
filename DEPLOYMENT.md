@@ -16,7 +16,7 @@ This guide covers the complete deployment process for the POS Launcher applicati
 
 ### Development Environment
 
-- **Visual Studio 2022** (17.8 or later) with MAUI workload
+
 - **.NET 8 SDK** (8.0.100 or later)
 - **Windows SDK** (for Windows deployment)
 - **Git** for source control
@@ -59,25 +59,7 @@ dotnet publish POSLauncher/POSLauncher.csproj \
   --runtime win-x64
 ```
 
-#### MAUI Version (Cross-platform)
 
-```bash
-# Build Windows target
-dotnet build POSLauncher.Maui/POSLauncher.Maui.csproj \
-  --configuration Release \
-  --framework net8.0-windows10.0.19041.0
-
-# Publish Windows MSIX package
-dotnet publish POSLauncher.Maui/POSLauncher.Maui.csproj \
-  --configuration Release \
-  --framework net8.0-windows10.0.19041.0 \
-  --output ./publish-maui
-
-# Build macOS target (on macOS)
-dotnet build POSLauncher.Maui/POSLauncher.Maui.csproj \
-  --configuration Release \
-  --framework net8.0-maccatalyst
-```
 
 ### Production Build Checklist
 
@@ -162,19 +144,7 @@ candle.exe -out POSLauncher.wixobj POSLauncher.wxs
 light.exe -out POSLauncher-1.0.0.msi POSLauncher.wixobj
 ```
 
-### MSIX Package (MAUI)
 
-For Microsoft Store distribution or modern deployment:
-
-```bash
-# Build MSIX package
-dotnet publish POSLauncher.Maui/POSLauncher.Maui.csproj \
-  --configuration Release \
-  --framework net8.0-windows10.0.19041.0 \
-  --output ./publish-msix \
-  /p:GenerateAppxPackageOnBuild=true \
-  /p:AppxPackageSigningEnabled=true
-```
 
 ## GitHub Actions CI/CD
 

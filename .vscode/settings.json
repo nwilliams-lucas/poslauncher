@@ -1,0 +1,69 @@
+{
+    // ==== .NET SETTINGS ====
+    "dotnet.defaultSolution": "POSLauncher.sln",
+    "dotnet.server.useOmnisharp": false,
+    
+    // ==== C# SETTINGS ====
+    "omnisharp.useModernNet": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.enableImportCompletion": true,
+    
+    // ==== FILE EXPLORER ====
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/*.user": true,
+        "**/publish*": false,
+        "**/test-publish*": false
+    },
+    
+    // ==== SEARCH SETTINGS ====
+    "search.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/publish*": true,
+        "**/test-publish*": true,
+        "**/*.dll": true,
+        "**/*.pdb": true
+    },
+    
+    // ==== FILE ASSOCIATIONS ====
+    "files.associations": {
+        "*.csproj": "xml",
+        "*.sln": "plaintext",
+        "*.wxs": "xml"
+    },
+    
+    // ==== EDITOR SETTINGS ====
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    
+    // ==== TERMINAL SETTINGS ====
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "args": ["-NoProfile"]
+        }
+    },
+    
+    // ==== TASK SETTINGS ====
+    "task.problemMatchers.errorApplicability": "openDocuments",
+    "task.autoDetect": "on",
+    
+    // ==== BUILD OUTPUT ====
+    "msbuild.terminal.focus": false,
+    "msbuild.terminal.reveal": "silent",
+    
+    // ==== ARCHITECTURE-SPECIFIC FOLDERS ====
+    "files.watcherExclude": {
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/publish/**": true,
+        "**/test-publish*/**": true,
+        "**/.git/**": true,
+        "**/node_modules/**": true
+    }
+}

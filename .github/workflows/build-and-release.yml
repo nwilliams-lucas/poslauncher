@@ -1,0 +1,234 @@
+name: Build and Release POS Launcher
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'POSLauncher/POSLauncher.csproj'
+  PROJECT_NAME: 'POSLauncher'
+
+jobs:
+  build:
+    name: Build ${{ matrix.architecture }}
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        architecture: [win-x64, win-arm64]
+        include:
+          - architecture: win-x64
+            display_name: "x64"
+            artifact_name: "POSLauncher-x64"
+          - architecture: win-arm64
+            display_name: "ARM64"
+            artifact_name: "POSLauncher-ARM64"
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build ${{ matrix.display_name }}
+      run: |
+        dotnet build ${{ env.PROJECT_PATH }} `
+          --configuration Release `
+          --runtime ${{ matrix.architecture }} `
+          --self-contained true `
+          --no-restore
+
+    - name: Publish ${{ matrix.display_name }}
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} `
+          --configuration Release `
+          --runtime ${{ matrix.architecture }} `
+          --self-contained true `
+          --output "publish-${{ matrix.architecture }}" `
+          --no-build
+
+    - name: Create artifact directory
+      run: |
+        New-Item -ItemType Directory -Force -Path "artifacts"
+        Copy-Item -Path "publish-${{ matrix.architecture }}/*" -Destination "artifacts/" -Recurse
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: artifacts/
+        retention-days: 30
+
+  create-installers:
+    name: Create MSI Installers
+    needs: build
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        architecture: [win-x64, win-arm64]
+        include:
+          - architecture: win-x64
+            display_name: "x64"
+            artifact_name: "POSLauncher-x64"
+            msi_name: "POSLauncher-x64.msi"
+          - architecture: win-arm64
+            display_name: "ARM64"
+            artifact_name: "POSLauncher-ARM64"
+            msi_name: "POSLauncher-ARM64.msi"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: artifacts/
+
+    - name: Setup WiX Toolset
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile "wix.zip"
+        Expand-Archive -Path "wix.zip" -DestinationPath "wix"
+        echo "$env:GITHUB_WORKSPACE\wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Create WiX source file
+      run: |
+        $wxs = @"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+          <Product Id="*" 
+                   Name="POS Launcher ${{ matrix.display_name }}" 
+                   Language="1033" 
+                   Version="1.0.0.0" 
+                   Manufacturer="Your Company" 
+                   UpgradeCode="12345678-1234-1234-1234-123456789012">
+            
+            <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+            
+            <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+            
+            <MediaTemplate EmbedCab="yes" />
+            
+            <Feature Id="ProductFeature" Title="POS Launcher" Level="1">
+              <ComponentGroupRef Id="ProductComponents" />
+            </Feature>
+            
+            <Directory Id="TARGETDIR" Name="SourceDir">
+              <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLFOLDER" Name="POS Launcher" />
+              </Directory>
+              <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="POS Launcher"/>
+              </Directory>
+              <Directory Id="StartupFolder" />
+            </Directory>
+            
+            <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+              <Component Id="MainExecutable" Guid="*">
+                <File Id="POSLauncherEXE" Source="artifacts/POSLauncher.exe" KeyPath="yes">
+                  <Shortcut Id="ApplicationStartMenuShortcut" 
+                           Directory="ApplicationProgramsFolder" 
+                           Name="POS Launcher" 
+                           Description="Service launcher for PostgreSQL, JMC FIXED, and Commerce_Client"
+                           WorkingDirectory="INSTALLFOLDER" />
+                  <Shortcut Id="ApplicationStartupShortcut"
+                           Directory="StartupFolder"
+                           Name="POS Launcher"
+                           Description="Service launcher for PostgreSQL, JMC FIXED, and Commerce_Client"
+                           WorkingDirectory="INSTALLFOLDER" />
+                </File>
+              </Component>
+            </ComponentGroup>
+          </Product>
+        </Wix>
+        "@
+        $wxs | Out-File -FilePath "installer.wxs" -Encoding UTF8
+
+    - name: Build MSI
+      run: |
+        candle.exe -arch ${{ matrix.architecture }} installer.wxs
+        light.exe -out "${{ matrix.msi_name }}" installer.wixobj
+
+    - name: Upload MSI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.msi_name }}
+        path: ${{ matrix.msi_name }}
+        retention-days: 30
+
+  release:
+    name: Create Release
+    needs: [build, create-installers]
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release-artifacts/
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release-artifacts/POSLauncher-x64.msi/POSLauncher-x64.msi
+          release-artifacts/POSLauncher-ARM64.msi/POSLauncher-ARM64.msi
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-builds:
+    name: Test Build ${{ matrix.architecture }}
+    needs: build
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        architecture: [win-x64, win-arm64]
+        include:
+          - architecture: win-x64
+            artifact_name: "POSLauncher-x64"
+          - architecture: win-arm64
+            artifact_name: "POSLauncher-ARM64"
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: test-artifacts/
+
+    - name: Verify executable exists
+      run: |
+        if (Test-Path "test-artifacts/POSLauncher.exe") {
+          Write-Host "✅ POSLauncher.exe found for ${{ matrix.architecture }}"
+          $fileInfo = Get-Item "test-artifacts/POSLauncher.exe"
+          Write-Host "File size: $($fileInfo.Length) bytes"
+          Write-Host "Last modified: $($fileInfo.LastWriteTime)"
+        } else {
+          Write-Error "❌ POSLauncher.exe not found for ${{ matrix.architecture }}"
+          exit 1
+        }
+
+    - name: Check dependencies
+      run: |
+        $files = Get-ChildItem "test-artifacts/" -Recurse -File
+        Write-Host "Artifact contents for ${{ matrix.architecture }}:"
+        foreach ($file in $files) {
+          Write-Host "  - $($file.Name) ($($file.Length) bytes)"
+        }

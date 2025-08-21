@@ -1,41 +1,649 @@
 {
     "version": "2.0.0",
     "tasks": [
+        // ==== SOLUTION-LEVEL TASKS ====
         {
-            "label": "build",
+            "label": "restore: solution",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "restore",
+                "POSLauncher.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: solution",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/POSLauncher.sln",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+                "POSLauncher.sln",
+                "--configuration",
+                "Debug",
+                "--no-restore"
             ],
+            "group": "build",
+            "dependsOn": "restore: solution",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "publish",
+            "label": "build: solution (release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher.sln",
+                "--configuration",
+                "Release",
+                "--no-restore"
+            ],
+            "group": "build",
+            "dependsOn": "restore: solution",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        
+        // ==== MAIN PROJECT TASKS ====
+        
+        // Build tasks for Main Project
+        {
+            "label": "build: main (x64-debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-x64"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: main (x64-release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-x64"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: main (arm64-debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-arm64"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: main (arm64-release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-arm64"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        
+        // Publish tasks for Main Project
+        {
+            "label": "publish: main (x64-debug)",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/POSLauncher.sln",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-x64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/main-x64-debug"
             ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "watch",
+            "label": "publish: main (x64-release)",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/POSLauncher.sln"
+                "publish",
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-x64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/main-x64-release"
             ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: main (arm64-debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-arm64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/main-arm64-debug"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: main (arm64-release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "POSLauncher/POSLauncher.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-arm64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/main-arm64-release"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        
+        // ==== PORTABLE PROJECT TASKS ====
+        
+        // Build tasks for Portable Project
+        {
+            "label": "build: portable (x64-debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-x64"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: portable (x64-release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-x64"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: portable (arm64-debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-arm64"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build: portable (arm64-release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-arm64"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        
+        // Publish tasks for Portable Project
+        {
+            "label": "publish: portable (x64-debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-x64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/portable-x64-debug"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: portable (x64-release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-x64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/portable-x64-release"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: portable (arm64-debug)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Debug",
+                "--runtime",
+                "win-arm64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/portable-arm64-debug"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish: portable (arm64-release)",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "POSLauncher.Portable/POSLauncher.Portable.csproj",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-arm64",
+                "--self-contained",
+                "true",
+                "--output",
+                "publish/portable-arm64-release"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        
+        // ==== COMPOUND BUILD TASKS ====
+        {
+            "label": "build: all architectures (debug)",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "build: main (x64-debug)",
+                "build: main (arm64-debug)",
+                "build: portable (x64-debug)",
+                "build: portable (arm64-debug)"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "build: all architectures (release)",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "build: main (x64-release)",
+                "build: main (arm64-release)",
+                "build: portable (x64-release)",
+                "build: portable (arm64-release)"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "publish: all architectures (debug)",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "publish: main (x64-debug)",
+                "publish: main (arm64-debug)",
+                "publish: portable (x64-debug)",
+                "publish: portable (arm64-debug)"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "publish: all architectures (release)",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "publish: main (x64-release)",
+                "publish: main (arm64-release)",
+                "publish: portable (x64-release)",
+                "publish: portable (arm64-release)"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        
+        // ==== UTILITY TASKS ====
+        {
+            "label": "clean: all",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "POSLauncher.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean: publish folders",
+            "type": "shell",
+            "command": "Remove-Item",
+            "args": [
+                "-Path",
+                "publish",
+                "-Recurse",
+                "-Force",
+                "-ErrorAction",
+                "SilentlyContinue"
+            ],
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe",
+                    "args": ["-Command"]
+                }
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "run: build script (debug)",
+            "type": "shell",
+            "command": ".\\build-both.ps1",
+            "args": ["-Configuration", "Debug"],
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe",
+                    "args": ["-Command"]
+                }
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "run: build script (release)",
+            "type": "shell",
+            "command": ".\\build-both.ps1",
+            "args": ["-Configuration", "Release"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
         }
     ]
 }

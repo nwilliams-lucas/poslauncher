@@ -1,12 +1,12 @@
 # POS Launcher
 
-A cross-platform application designed to automatically start and manage services required for a Point of Sale (POS) system. Built with .NET MAUI for Windows, macOS, iOS, and Android support.
+
 
 ## Features
 
 ### Core Features
 
-- **Cross-Platform Support**: Built with .NET MAUI for Windows, macOS, iOS, and Android
+
 - **Service Management**: Automatically starts PostgreSQL and JMC FIXED services (Windows primary focus)
 - **Application Launcher**: Launches Commerce_Client with machine-specific parameters
 - **Visual Feedback**: Real-time status updates with intuitive UI and banner logo
@@ -24,23 +24,9 @@ A cross-platform application designed to automatically start and manage services
 
 ## Architecture
 
-The application uses a hybrid approach with both WPF and .NET MAUI implementations:
 
-### .NET MAUI Cross-Platform (Recommended)
 
-- **Platform-Specific Services**: Abstracted service management for each platform
-- **Dependency Injection**: Clean separation of concerns with DI container
-- **MVVM Pattern**: ViewModels with data binding for reactive UI
-- **Cross-Platform Interfaces**: Consistent API across Windows, Mac, iOS, Android
 
-#### Core Components
-
-- **IServiceManager**: Platform-specific service detection and management
-- **IApplicationLauncher**: Application launching with parameter handling
-- **IConfigurationService**: JSON-based configuration persistence
-- **IStartupManager**: Platform-specific startup registration
-- **ViewModels**: Business logic and data binding
-- **Views**: XAML-based UI with responsive design
 
 ### Legacy WPF Windows (Maintained)
 

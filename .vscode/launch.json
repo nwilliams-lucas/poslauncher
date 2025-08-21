@@ -1,26 +1,116 @@
 {
     "version": "0.2.0",
     "configurations": [
+        // ==== MAIN PROJECT DEBUG CONFIGURATIONS ====
         {
-            // Use IntelliSense to find out which attributes exist for C# debugging
-            // Use hover for the description of the existing attributes
-            // For further information visit https://github.com/dotnet/vscode-csharp/blob/main/debugger-launchjson.md
-            "name": ".NET Core Launch (console)",
+            "name": "Debug Main (x64)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/POSLauncher.Maui/bin/Debug/net8.0-maccatalyst/maccatalyst-arm64/POSLauncher.Maui.dll",
+            "program": "${workspaceFolder}/POSLauncher/bin/Debug/net8.0-windows/win-x64/POSLauncher.exe",
             "args": [],
-            "cwd": "${workspaceFolder}/POSLauncher.Maui",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "build: main (x64-debug)"
         },
         {
-            "name": ".NET Core Attach",
+            "name": "Debug Main (ARM64)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/POSLauncher/bin/Debug/net8.0-windows/win-arm64/POSLauncher.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "build: main (arm64-debug)"
+        },
+        
+        // ==== PORTABLE PROJECT DEBUG CONFIGURATIONS ====
+        {
+            "name": "Debug Portable (x64)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/POSLauncher.Portable/bin/Debug/net8.0-windows/win-x64/POSLauncher.Portable.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "build: portable (x64-debug)"
+        },
+        {
+            "name": "Debug Portable (ARM64)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/POSLauncher.Portable/bin/Debug/net8.0-windows/win-arm64/POSLauncher.Portable.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "build: portable (arm64-debug)"
+        },
+        
+        // ==== PUBLISHED EXECUTABLE CONFIGURATIONS ====
+        {
+            "name": "Run Published Main (x64-debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/publish/main-x64-debug/POSLauncher.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "publish: main (x64-debug)"
+        },
+        {
+            "name": "Run Published Main (x64-release)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/publish/main-x64-release/POSLauncher.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "publish: main (x64-release)"
+        },
+        {
+            "name": "Run Published Portable (x64-debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/publish/portable-x64-debug/POSLauncher.Portable.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "publish: portable (x64-debug)"
+        },
+        {
+            "name": "Run Published Portable (x64-release)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/publish/portable-x64-release/POSLauncher.Portable.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "preLaunchTask": "publish: portable (x64-release)"
+        },
+        
+        // ==== ATTACH CONFIGURATIONS ====
+        {
+            "name": "Attach to Process",
             "type": "coreclr",
             "request": "attach"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug All Projects (x64)",
+            "configurations": [
+                "Debug Main (x64)",
+                "Debug Portable (x64)"
+            ],
+            "stopAll": true,
+            "preLaunchTask": "build: all architectures (debug)"
         }
     ]
 }

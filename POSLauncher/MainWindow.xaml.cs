@@ -15,19 +15,49 @@ namespace POSLauncher
 
         public MainWindow()
         {
-            InitializeComponent();
-            
-            _configManager = new ConfigurationManager();
-            _serviceManager = new ServiceManager();
-            _commerceLauncher = new CommerceClientLauncher(_configManager);
-            _startupManager = new StartupManager();
-            
-            Loaded += MainWindow_Loaded;
+            try
+            {
+                Console.WriteLine("MainWindow constructor starting...");
+                Console.WriteLine("About to call InitializeComponent...");
+                InitializeComponent();
+                Console.WriteLine("InitializeComponent completed successfully");
+                
+                Console.WriteLine("Initializing services...");
+                _configManager = new ConfigurationManager();
+                _serviceManager = new ServiceManager();
+                _commerceLauncher = new CommerceClientLauncher(_configManager);
+                _startupManager = new StartupManager();
+                
+                Console.WriteLine("Services initialized, setting up Loaded event...");
+                Loaded += MainWindow_Loaded;
+                Console.WriteLine("MainWindow constructor completed");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in MainWindow constructor: {ex}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner stack trace: {ex.InnerException.StackTrace}");
+                }
+                MessageBox.Show($"MainWindow failed to initialize:\n\n{ex.Message}\n\nInner Exception: {ex.InnerException?.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            await StartLaunchSequence();
+            try
+            {
+                Console.WriteLine("MainWindow_Loaded event fired");
+                await StartLaunchSequence();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in MainWindow_Loaded: {ex}");
+                MessageBox.Show($"Error during window loading: {ex.Message}", "Loading Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async Task StartLaunchSequence()
@@ -184,13 +214,24 @@ namespace POSLauncher
                 
                 if (success.HasValue)
                 {
-                    textBlock.Style = success.Value 
-                        ? (Style)FindResource("SuccessStyle") 
-                        : (Style)FindResource("ErrorStyle");
+                    if (success.Value)
+                    {
+                        // Success style - green
+                        textBlock.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E8F5E8"));
+                        textBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"));
+                    }
+                    else
+                    {
+                        // Error style - red
+                        textBlock.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFEBEE"));
+                        textBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C62828"));
+                    }
                 }
                 else
                 {
-                    textBlock.Style = (Style)FindResource("InProgressStyle");
+                    // In progress style - orange
+                    textBlock.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF3E0"));
+                    textBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E65100"));
                 }
             });
         }

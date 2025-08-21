@@ -11,7 +11,13 @@
       "Bash(tar:*)",
       "Bash(python:*)",
       "Bash(pip install:*)",
-      "Bash(source:*)"
+      "Bash(source:*)",
+      "Bash(dotnet run:*)",
+      "Bash(.POSLauncher.exe)",
+      "Bash(publishPOSLauncher.exe)",
+      "Bash(\"publish\\POSLauncher.exe\")",
+      "Bash(powershell.exe:*)",
+      "Bash(touch:*)"
     ],
     "deny": [],
     "ask": []

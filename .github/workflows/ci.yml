@@ -1,0 +1,101 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'POSLauncher/POSLauncher.csproj'
+  PORTABLE_PROJECT_PATH: 'POSLauncher.Portable/POSLauncher.Portable.csproj'
+
+jobs:
+  build-and-test:
+    name: Build and Test (${{ matrix.architecture }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [win-x64, win-arm64]
+        project: [POSLauncher, POSLauncher.Portable]
+        include:
+          - architecture: win-x64
+            display_name: "x64"
+          - architecture: win-arm64
+            display_name: "ARM64"
+          - project: POSLauncher
+            project_path: 'POSLauncher/POSLauncher.csproj'
+            display_project: "Main"
+          - project: POSLauncher.Portable
+            project_path: 'POSLauncher.Portable/POSLauncher.Portable.csproj'
+            display_project: "Portable"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ matrix.project_path }}
+
+    - name: Build ${{ matrix.display_project }} (${{ matrix.display_name }})
+      run: |
+        dotnet build ${{ matrix.project_path }} `
+          --configuration Release `
+          --runtime ${{ matrix.architecture }} `
+          --self-contained true `
+          --no-restore
+
+    - name: Publish ${{ matrix.display_project }} (${{ matrix.display_name }})
+      run: |
+        dotnet publish ${{ matrix.project_path }} `
+          --configuration Release `
+          --runtime ${{ matrix.architecture }} `
+          --self-contained true `
+          --output "publish-${{ matrix.project }}-${{ matrix.architecture }}" `
+          --no-build
+
+    - name: Upload build artifacts (CI)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.project }}-${{ matrix.architecture }}-ci
+        path: publish-${{ matrix.project }}-${{ matrix.architecture }}/
+        retention-days: 7
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore POSLauncher.sln
+
+    - name: Build solution
+      run: dotnet build POSLauncher.sln --configuration Release --no-restore
+
+    - name: Check for build warnings
+      run: |
+        $buildOutput = dotnet build POSLauncher.sln --configuration Release --verbosity minimal 2>&1
+        $warnings = $buildOutput | Select-String "warning"
+        if ($warnings.Count -gt 0) {
+          Write-Host "Build completed with $($warnings.Count) warnings:" -ForegroundColor Yellow
+          foreach ($warning in $warnings) {
+            Write-Host "  $warning" -ForegroundColor Yellow
+          }
+        } else {
+          Write-Host "✅ Build completed with no warnings" -ForegroundColor Green
+        }

@@ -1,0 +1,27 @@
+{
+    "recommendations": [
+        // ==== C# AND .NET ====
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.vscodeintellicode-csharp",
+        
+        // ==== GENERAL DEVELOPMENT ====
+        "ms-vscode.powershell",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-xml",
+        
+        // ==== VERSION CONTROL ====
+        "eamodio.gitlens",
+        
+        // ==== PRODUCTIVITY ====
+        "ms-vscode.todo-highlight",
+        "streetsidesoftware.code-spell-checker",
+        
+        // ==== BUILD AND DEPLOYMENT ====
+        "ms-vscode.vscode-github-actions",
+        "ms-azure-devops.azure-pipelines"
+    ],
+    "unwantedRecommendations": [
+        "ms-dotnettools.vscode-dotnet-runtime"
+    ]
+}
