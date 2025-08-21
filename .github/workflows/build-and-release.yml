@@ -80,10 +80,16 @@ jobs:
             display_name: "x64"
             artifact_name: "POSLauncher-x64"
             msi_name: "POSLauncher-x64.msi"
+            wix_arch: "x64"
+            program_files: "ProgramFiles64Folder"
+            can_create_msi: true
           - architecture: win-arm64
             display_name: "ARM64"
             artifact_name: "POSLauncher-ARM64"
-            msi_name: "POSLauncher-ARM64.msi"
+            zip_name: "POSLauncher-ARM64.zip"
+            wix_arch: "x64"  # Not used for ARM64
+            program_files: "ProgramFiles64Folder"
+            can_create_msi: false  # WiX v3 doesn't support ARM64
 
     steps:
     - name: Checkout code
@@ -95,13 +101,15 @@ jobs:
         name: ${{ matrix.artifact_name }}
         path: artifacts/
 
-    - name: Setup WiX Toolset
+    - name: Setup WiX Toolset (x64 only)
+      if: matrix.can_create_msi == true
       run: |
         Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile "wix.zip"
         Expand-Archive -Path "wix.zip" -DestinationPath "wix"
         echo "$env:GITHUB_WORKSPACE\wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Create WiX source file
+    - name: Create WiX source file (x64 only)
+      if: matrix.can_create_msi == true
       run: |
         $wxs = @"
         <?xml version="1.0" encoding="UTF-8"?>
@@ -124,7 +132,7 @@ jobs:
             </Feature>
             
             <Directory Id="TARGETDIR" Name="SourceDir">
-              <Directory Id="ProgramFiles64Folder">
+              <Directory Id="${{ matrix.program_files }}">
                 <Directory Id="INSTALLFOLDER" Name="POS Launcher" />
               </Directory>
               <Directory Id="ProgramMenuFolder">
@@ -154,16 +162,97 @@ jobs:
         "@
         $wxs | Out-File -FilePath "installer.wxs" -Encoding UTF8
 
-    - name: Build MSI
+    - name: Build MSI (x64 only)
+      if: matrix.can_create_msi == true
       run: |
-        candle.exe -arch ${{ matrix.architecture }} installer.wxs
+        candle.exe -arch ${{ matrix.wix_arch }} installer.wxs
         light.exe -out "${{ matrix.msi_name }}" installer.wixobj
 
-    - name: Upload MSI artifact
+    - name: Upload MSI artifact (x64 only)
+      if: matrix.can_create_msi == true
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.msi_name }}
         path: ${{ matrix.msi_name }}
+        retention-days: 30
+
+    - name: Create ZIP package (ARM64 only)
+      if: matrix.can_create_msi == false
+      run: |
+        # Create a ZIP package for ARM64 since MSI isn't supported
+        Compress-Archive -Path "artifacts/*" -DestinationPath "${{ matrix.zip_name }}"
+        
+        # Create installation script for ARM64
+        $installScript = @"
+        # POS Launcher ARM64 Installation Script
+        # Run this script as Administrator to install POS Launcher
+
+        `$ErrorActionPreference = "Stop"
+
+        # Check if running as Administrator
+        if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+            Write-Host "This script must be run as Administrator!" -ForegroundColor Red
+            Write-Host "Right-click on PowerShell and select 'Run as Administrator'" -ForegroundColor Yellow
+            Read-Host "Press Enter to exit"
+            exit 1
+        }
+
+        Write-Host "Installing POS Launcher (ARM64)..." -ForegroundColor Green
+
+        # Create installation directory
+        `$installPath = "`${env:ProgramFiles}\POS Launcher"
+        if (-not (Test-Path `$installPath)) {
+            New-Item -ItemType Directory -Path `$installPath -Force | Out-Null
+        }
+
+        # Copy files
+        Copy-Item -Path "POSLauncher.exe" -Destination `$installPath -Force
+        Copy-Item -Path "*.dll" -Destination `$installPath -Force -ErrorAction SilentlyContinue
+        Copy-Item -Path "*.pdb" -Destination `$installPath -Force -ErrorAction SilentlyContinue
+
+        # Create start menu shortcut
+        `$startMenuPath = "`${env:ProgramData}\Microsoft\Windows\Start Menu\Programs"
+        `$shortcutPath = Join-Path `$startMenuPath "POS Launcher.lnk"
+        `$shell = New-Object -ComObject WScript.Shell
+        `$shortcut = `$shell.CreateShortcut(`$shortcutPath)
+        `$shortcut.TargetPath = Join-Path `$installPath "POSLauncher.exe"
+        `$shortcut.Description = "Service launcher for PostgreSQL, JMC FIXED, and Commerce_Client"
+        `$shortcut.WorkingDirectory = `$installPath
+        `$shortcut.Save()
+
+        # Create startup shortcut
+        `$startupPath = "`${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Startup"
+        `$startupShortcutPath = Join-Path `$startupPath "POS Launcher.lnk"
+        `$startupShortcut = `$shell.CreateShortcut(`$startupShortcutPath)
+        `$startupShortcut.TargetPath = Join-Path `$installPath "POSLauncher.exe"
+        `$startupShortcut.Description = "Service launcher for PostgreSQL, JMC FIXED, and Commerce_Client"
+        `$startupShortcut.WorkingDirectory = `$installPath
+        `$startupShortcut.Save()
+
+        Write-Host "✅ POS Launcher installed successfully!" -ForegroundColor Green
+        Write-Host "Installation path: `$installPath" -ForegroundColor Yellow
+        Write-Host "The application will start automatically on system boot." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "To uninstall, delete the following:" -ForegroundColor Cyan
+        Write-Host "  - `$installPath" -ForegroundColor White
+        Write-Host "  - `$shortcutPath" -ForegroundColor White
+        Write-Host "  - `$startupShortcutPath" -ForegroundColor White
+        
+        Read-Host "Press Enter to exit"
+        "@
+        
+        $installScript | Out-File -FilePath "Install-ARM64.ps1" -Encoding UTF8
+        
+        # Create the final ZIP with installation script
+        Remove-Item "${{ matrix.zip_name }}" -ErrorAction SilentlyContinue
+        Compress-Archive -Path @("artifacts/*", "Install-ARM64.ps1") -DestinationPath "${{ matrix.zip_name }}"
+
+    - name: Upload ZIP artifact (ARM64 only)
+      if: matrix.can_create_msi == false
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.zip_name }}
+        path: ${{ matrix.zip_name }}
         retention-days: 30
 
   release:
@@ -186,7 +275,33 @@ jobs:
       with:
         files: |
           release-artifacts/POSLauncher-x64.msi/POSLauncher-x64.msi
-          release-artifacts/POSLauncher-ARM64.msi/POSLauncher-ARM64.msi
+          release-artifacts/POSLauncher-ARM64.zip/POSLauncher-ARM64.zip
+        body: |
+          ## POS Launcher Release
+          
+          ### Installation Instructions:
+          
+          **For x64 systems:**
+          - Download `POSLauncher-x64.msi`
+          - Run the MSI installer as Administrator
+          - The application will be installed to Program Files and configured to start automatically
+          
+          **For ARM64 systems:**
+          - Download `POSLauncher-ARM64.zip`
+          - Extract the ZIP file
+          - Right-click on `Install-ARM64.ps1` and select "Run with PowerShell" (as Administrator)
+          - Follow the installation prompts
+          
+          ### What's New:
+          - Dual architecture support (x64 and ARM64)
+          - Service launcher for PostgreSQL, JMC FIXED, and Commerce_Client
+          - Automatic startup configuration
+          - Enhanced Commerce-Client detection with multiple naming patterns
+          
+          ### System Requirements:
+          - Windows 10 version 1809 or later
+          - Administrator privileges (required for service management)
+          - .NET 8 runtime (included in self-contained builds)
         generate_release_notes: true
         draft: false
         prerelease: false

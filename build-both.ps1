@@ -78,3 +78,10 @@ if (Test-Path "publish-arm64/POSLauncher.exe") {
     $arm64Size = (Get-Item "publish-arm64/POSLauncher.exe").Length
     Write-Host "  - ARM64: $([math]::Round($arm64Size/1MB, 2)) MB" -ForegroundColor White
 }
+
+Write-Host ""
+Write-Host "Deployment packages:" -ForegroundColor Yellow
+Write-Host "  - x64: MSI installer (enterprise deployment)" -ForegroundColor White
+Write-Host "  - ARM64: ZIP with PowerShell installer (manual deployment)" -ForegroundColor White
+Write-Host ""
+Write-Host "Note: ARM64 uses ZIP + PowerShell installer because WiX v3 doesn't support ARM64" -ForegroundColor Cyan
